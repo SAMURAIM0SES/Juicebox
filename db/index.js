@@ -181,16 +181,33 @@ async function getAllUsers() {
           (_, index) => `$${index + 1}`).join(', ');
         // then we can use (${ selectValues }) in our string template
       
-        try {
-          // insert the tags, doing nothing on conflict
-          // returning nothing, we'll query after
-      
-          // select all tags where the name is in our taglist
-          // return the rows from the query
-        } catch (error) {
-          throw error;
-        }
-      }
+    const insertQueryString = 
+    `INSERT INTO tags(name)
+    VALUES (${ insertValues })
+    ON CONFLICT (name) DO NOTHING;`
+
+  const selectQueryString = 
+    `SELECT * FROM tags
+    WHERE name
+    IN (${ selectValues });`
+    console.log(selectQueryString)
+
+  try {
+    // insert the tags, doing nothing on conflict
+    // returning nothing, we'll query after
+    await client.query(insertQueryString, tagList)
+    
+    // select all tags where the name is in our taglist
+    // return the rows from the query
+    const { rows } = await client.query(selectQueryString, tagList)
+
+    return rows;
+
+
+  } catch (error) {
+    throw error;
+  }
+}
 
  
     module.exports = {  
